@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+</head>
+
+<body onload="users_read()">
+
+    <div class="container">
+        <div class="row">
+            <h1>User</h1>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="window.location = 'create.html'">Create User</button>
+        <div class="row">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Avatar</th>
+                        <th scope="col">First Name</th>
+                        <th scope="col">Last Name</th>
+                        <th scope="col">Manage</th>
+                    </tr>
+                </thead>
+                <tbody id="users_table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    +
+</body>
+
+</html>
+
+<script>
+    var users_read = function () {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+        var user_table = document.getElementById('users_table');
+        users_table.innerHTML = 'Loading...';
+        fetch("http://localhost/crud/api/user/read.php", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                users_table.innerHTML = '';
+                var jsonObj = JSON.parse(result);
+                for (let user of jsonObj) {
+                    var row = `
+                <tr>
+                        <th scope="row">`+ user.id + `</th>
+                        <td><img src = " `+ user.avatar + `"width="50px" alt="` + user.fname + `"></td>
+                        <td>`+ user.fname + `</td>
+                        <td>`+ user.lname + `</td>
+                        <td><a href="edit.html?id=`+ user.id +`">Edit</a> 
+                            <a href="#" onclick="user_confirm(`+ user.id + `)">Delete </a>
+                            </td>
+                    </tr>
+                    `;
+                    users_table.insertAdjacentHTML('beforeend', row);
+                }
+
+            })
+
+            .catch(error => console.log('error', error));
+    }
+
+    var user_confirm = function(id){
+        var conf = confirm("Are you sure to delete?")
+        if (conf) {
+            user_delete(id);
+        }
+    }
+    var user_delete = function (id) {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+            "id": id
+        });
+
+        var requestOptions = {
+            method: 'DELETE',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost/crud/api/user/delete.php", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                var jsonObj = JSON.parse(result);
+                if (jsonObj.status == 'ok') {
+                    window.location = 'index.html';
+                } else {
+                    alert('error');
+                }
+            })
+            .catch(error => console.log('error', error));
+    }
+</script>
